@@ -30,19 +30,21 @@ bg = pygame.image.load('content/bg.jpg')
 clock = pygame.time.Clock()
 
 class heli(object):
-    def __init__(self,x,y,width,height):
+    radius = 25
+    numHelis = 0
+    def __init__(self,x,y):
         self.x = x
         self.y = y
-        self.width = width
-        self.height = height
         self.vel = 5
+        self.score = 0
+        heli.numHelis += 1
 
     def draw(self, win):
         win.blit(heliRed, (self.x, self.y))
 
 def redrawGameWindow():
     win.blit(bg, (0,0))
-    text = font.render('Score: ' + "10", 1, (0,0,0))
+    text = font.render('Score: ' + str(heli1.score), 1, (0,0,0))
     win.blit(text, (390, 10))
     heli1.draw(win)
     #for bullet in bullets:
@@ -52,8 +54,8 @@ def redrawGameWindow():
 
 #mainloop
 font = pygame.font.SysFont('comicsans', 30, True)
-heli1 = heli(200, 410, 64,64)
-heli2 = heli(200, 410, 64,64)
+heli1 = heli(200, 410)
+heli2 = heli(200, 410)
 bullets = []
 run = True
 while run:
