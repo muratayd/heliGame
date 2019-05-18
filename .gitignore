@@ -103,5 +103,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-trash.txt
-/dir1
+.vs/
+heliGame.pyproj
+heliGame.sln
