@@ -38,7 +38,7 @@ class Heli(object):
     def __init__(self, x, y, heading, img):
         self.x = x
         self.y = y
-        self.vel = 5.0
+        self.vel = 1.0
         self.heading = heading
         self.score = 0
         self.timer = 0
@@ -77,9 +77,9 @@ class Bullet(object):
         win.blit(self.img, self.img.get_rect(center=(self.x,self.y)))
 
 def redrawGameWindow():
-    for y in range(10):
-        for x in range(10):
-            rect = pygame.Rect(x*(49+1), y*(49+1), 49, 49)
+    for y in range(5):
+        for x in range(5):
+            rect = pygame.Rect(x*(99+1), y*(99+1), 99, 99)
             pygame.draw.rect(win, DARKGRAY, rect)        
     #win.fill(DARKGRAY)
     text = font.render('Score: ' + str(heli1.score), 1, (0,0,0))
@@ -115,9 +115,12 @@ def executeInputs(keys):
 #mainloop
 pygame.mixer.music.play(-1) # -1 will ensure the song keeps looping
 font = pygame.font.SysFont('comicsans', 30, True)
-heli1 = Heli(50.0, 0.0, -90.0, heliBlack)
+heli1 = Heli(50.0, 50.0, -90.0, heliBlack)
 heli2 = Heli(350, 350, 135, heliGreen)
 bullets = []
+joysticks = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())]
+for joy in joysticks:
+    joy.init()
 run = True
 while run:
     #start = pygame.time.get_ticks()
