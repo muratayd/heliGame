@@ -1,4 +1,5 @@
 import pygame, math
+import numpy as np
 FPS = 20
 WINDOWWIDTH = 500
 WINDOWHEIGHT = 500
@@ -32,13 +33,14 @@ clock = pygame.time.Clock()
 class Heli(object):
     radius = 25.0
     numHelis = 0
-    maxVel = 10.0
+    maxVel = 5
     turnRate = 5.0
     acc = 1.0
     def __init__(self, x, y, heading, img):
         self.x = x
         self.y = y
-        self.vel = 1.0
+        self.lonSpd = 1.0
+        self.latSpd = 0.0
         self.heading = heading
         self.score = 0
         self.timer = 0
@@ -49,8 +51,8 @@ class Heli(object):
         Heli.numHelis += 1
 
     def update(self):
-        self.x += self.vel * math.cos(math.radians(self.heading))
-        self.y -= self.vel * math.sin(math.radians(self.heading))
+        self.x += self.lonSpd * math.cos(math.radians(self.heading)) + self.latSpd * math.cos(math.radians(self.heading-90))
+        self.y -= self.lonSpd * math.sin(math.radians(self.heading)) + self.latSpd * math.sin(math.radians(self.heading-90))
         if self.timer > 0: self.timer -= 1
     def draw(self, win):
         if self.health > 0:
@@ -83,11 +85,19 @@ def redrawGameWindow():
             pygame.draw.rect(win, DARKGRAY, rect)        
     #win.fill(DARKGRAY)
     text = font.render('Score: ' + str(heli1.score), 1, (0,0,0))
-    win.blit(text, (100, 10))
+    win.blit(text, (100, 2))
     heli1.draw(win)
     heli2.draw(win)
     for bullet in bullets:
-        bullet.draw(win)    
+        bullet.draw(win)
+    image = font.render('x axis: {:0.3f}'.format(joysticks[0].get_axis(0)), 1, (0,200,0))
+    win.blit(image,(2,2))
+    image = font.render('y axis: {:0.3f}'.format(joysticks[0].get_axis(1)), 1, (0,200,0))
+    win.blit(image,(2,22))
+    for i in range(joysticks[0].get_numbuttons()):
+        if(joysticks[0].get_button(i)):
+            image = font.render('{}: push'.format(i), 1, (0,20,0))
+            win.blit(image,(20,20))
     pygame.display.update()
     
 def checkCollisions():
@@ -98,23 +108,31 @@ def checkCollisions():
             heli1.score += 1
             bullets.pop(bullets.index(bullet))
 
-def executeInputs(keys):
-    if keys[pygame.K_LEFT]:
-        heli1.heading += Heli.turnRate
-    elif keys[pygame.K_RIGHT] and heli1.x < WINDOWWIDTH - heli1.radius- heli1.vel:
-        heli1.heading -= Heli.turnRate
-    if keys[pygame.K_UP] and  heli1.vel < Heli.maxVel:
-        heli1.vel += Heli.acc
-    elif keys[pygame.K_DOWN] and  heli1.vel > -Heli.maxVel:
-        heli1.vel -= Heli.acc
-    if keys[pygame.K_SPACE] and len(bullets) < 3 and heli1.timer == 0:
+def executeInputs(keys):    
+    pitch = -joysticks[0].get_axis(1)
+    if pitch > -0.1 and pitch < 0.1:
+        pitch = 0.0        
+    roll = joysticks[0].get_axis(0)
+    if roll > -0.1 and roll < 0.1:
+        roll = 0.0
+    yaw = -joysticks[0].get_axis(2)
+    if yaw > -0.1 and yaw < 0.1:
+        yaw = 0.0
+    heli1.lonSpd += pitch
+    heli1.latSpd += roll
+    if heli1.lonSpd > heli1.maxVel: heli1.lonSpd = heli1.maxVel
+    elif heli1.lonSpd < -heli1.maxVel: heli1.lonSpd = -heli1.maxVel
+    if heli1.latSpd > heli1.maxVel: heli1.latSpd = heli1.maxVel
+    elif heli1.latSpd < -heli1.maxVel: heli1.latSpd = -heli1.maxVel
+    heli1.heading += yaw * 5    
+    if joysticks[0].get_button(0) and len(bullets) < 3 and heli1.timer == 0:
         bulletSound.play()
         bullets.append(Bullet(heli1.x, heli1.y, heli1.heading))
-        heli1.timer = 10        
+        heli1.timer = 10
 
 #mainloop
 pygame.mixer.music.play(-1) # -1 will ensure the song keeps looping
-font = pygame.font.SysFont('comicsans', 30, True)
+font = pygame.font.SysFont('comicsans', 22, True)
 heli1 = Heli(50.0, 50.0, -90.0, heliBlack)
 heli2 = Heli(350, 350, 135, heliGreen)
 bullets = []
@@ -124,7 +142,7 @@ for joy in joysticks:
 run = True
 while run:
     #start = pygame.time.get_ticks()
-    clock.tick(FPS)    
+    clock.tick(FPS)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -140,6 +158,8 @@ while run:
     checkCollisions()
     redrawGameWindow()
 
+
+                
     #fps = 1000. / (pygame.time.get_ticks() - start)
     #print(fps)
 pygame.quit()
