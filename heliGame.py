@@ -25,7 +25,7 @@ heliGreen = pygame.transform.scale(heliGreen, (50, 50))
 heliRed = pygame.image.load('content/heliRed.png')
 heliRed = pygame.transform.scale(heliRed, (50, 50))
 bulletImg = pygame.image.load('content/bullet.png')
-bulletImg = pygame.transform.scale(bulletImg, (5, 20))
+bulletImg = pygame.transform.scale(bulletImg, (25, 25))
 #bg = pygame.image.load('content/bg.jpg')
 
 clock = pygame.time.Clock()
@@ -51,15 +51,23 @@ class Heli(object):
         Heli.numHelis += 1
 
     def update(self):
+        if self.x < 10 or self.x > WINDOWWIDTH-10: 
+            self.lonSpd = 0
+            self.latSpd = 0
         self.x += self.lonSpd * math.cos(math.radians(self.heading)) + self.latSpd * math.cos(math.radians(self.heading-90))
-        self.y -= self.lonSpd * math.sin(math.radians(self.heading)) + self.latSpd * math.sin(math.radians(self.heading-90))
+        if self.y < 10 or self.y > WINDOWHEIGHT-10:
+            self.lonSpd = 0
+            self.latSpd = 0
+        self.y -= self.lonSpd * math.sin(math.radians(self.heading)) + self.latSpd * math.sin(math.radians(self.heading-90))        
+        self.lonSpd = self.lonSpd * 0.98
+        self.latSpd = self.latSpd * 0.96
         if self.timer > 0: self.timer -= 1
     def draw(self, win):
         if self.health > 0:
             self.img = pygame.transform.rotate(self.orj_img, self.heading-90.0)
             win.blit(self.img, self.img.get_rect(center=(self.x,self.y)))
-            pygame.draw.rect(win, (255,0,0), (self.x-self.radius, self.y - self.radius, 50, 5))
-            pygame.draw.rect(win, (0,128,0), (self.x-self.radius, self.y - self.radius, 50 - (5 * (10 - self.health)), 5))
+            pygame.draw.rect(win, (255,0,0), (self.x-self.radius, self.y - self.radius, 50, 3))
+            pygame.draw.rect(win, (0,128,0), (self.x-self.radius, self.y - self.radius, 50 - (10 * (5 - self.health)), 3))
         
 class Bullet(object):
     radius = 5.0
@@ -93,7 +101,11 @@ def redrawGameWindow():
     image = font.render('x axis: {:0.3f}'.format(joysticks[0].get_axis(0)), 1, (0,200,0))
     win.blit(image,(2,2))
     image = font.render('y axis: {:0.3f}'.format(joysticks[0].get_axis(1)), 1, (0,200,0))
-    win.blit(image,(2,22))
+    win.blit(image,(2,17))
+    image = font.render('axis2: {:0.3f}'.format(joysticks[0].get_axis(2)), 1, (0,200,0))
+    win.blit(image,(2,32))
+    image = font.render('axis3: {:0.3f}'.format(joysticks[0].get_axis(3)), 1, (0,200,0))
+    win.blit(image,(2,47))
     for i in range(joysticks[0].get_numbuttons()):
         if(joysticks[0].get_button(i)):
             image = font.render('{}: push'.format(i), 1, (0,20,0))
@@ -115,8 +127,8 @@ def executeInputs(keys):
     roll = joysticks[0].get_axis(0)
     if roll > -0.1 and roll < 0.1:
         roll = 0.0
-    yaw = -joysticks[0].get_axis(2)
-    if yaw > -0.1 and yaw < 0.1:
+    yaw = -joysticks[0].get_axis(3)
+    if yaw > -0.2 and yaw < 0.2:
         yaw = 0.0
     heli1.lonSpd += pitch
     heli1.latSpd += roll
@@ -132,8 +144,8 @@ def executeInputs(keys):
 
 #mainloop
 pygame.mixer.music.play(-1) # -1 will ensure the song keeps looping
-font = pygame.font.SysFont('comicsans', 22, True)
-heli1 = Heli(50.0, 50.0, -90.0, heliBlack)
+font = pygame.font.SysFont('comicsans', 20, True)
+heli1 = Heli(190.0, 100.0, -90.0, heliRed)
 heli2 = Heli(350, 350, 135, heliGreen)
 bullets = []
 joysticks = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())]
