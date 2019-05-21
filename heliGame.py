@@ -51,14 +51,14 @@ class Heli(object):
         Heli.numHelis += 1
 
     def update(self):
+        self.x += self.lonSpd * math.cos(math.radians(self.heading)) + self.latSpd * math.cos(math.radians(self.heading-90))
         if self.x < 10 or self.x > WINDOWWIDTH-10: 
             self.lonSpd = 0
             self.latSpd = 0
-        self.x += self.lonSpd * math.cos(math.radians(self.heading)) + self.latSpd * math.cos(math.radians(self.heading-90))
+        self.y -= self.lonSpd * math.sin(math.radians(self.heading)) + self.latSpd * math.sin(math.radians(self.heading-90))
         if self.y < 10 or self.y > WINDOWHEIGHT-10:
             self.lonSpd = 0
             self.latSpd = 0
-        self.y -= self.lonSpd * math.sin(math.radians(self.heading)) + self.latSpd * math.sin(math.radians(self.heading-90))        
         self.lonSpd = self.lonSpd * 0.98
         self.latSpd = self.latSpd * 0.96
         if self.timer > 0: self.timer -= 1
